@@ -1,4 +1,3 @@
-from math import abs
 from PIL import Image
 from PIL.ImageColor import getcolor
 
@@ -10,11 +9,17 @@ def line(x0: int, y0: int, x1: int, y1: int, image: Image.Image, color: tuple) -
     steep = False
     if abs(x1 - x0) < abs(y1 - y0):
         steep = True
-        x1,
+        x0, x1, y0, y1 = y0, y1, x0, x1
+    if x0 > x1:
+        x0, x1, y0, y1 = x1, x0, y1, y0
+
     for x in range(x0, x1+1):
         t = (x - x0) / (x1 - x0)
         y = int(y0 + t * (y1 - y0))
-        image.putpixel((x, y), color)
+        if steep:
+            image.putpixel((y, x), color)
+        else:
+            image.putpixel((x, y), color)
 
 def main():
     image = Image.new('RGB', (100, 100), black)
