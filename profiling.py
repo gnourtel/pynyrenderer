@@ -1,6 +1,5 @@
-import timeit
 from app import line, NPImage, np, getcolor
-
+import cProfile
 
 def test_line():
     # declare color
@@ -12,10 +11,10 @@ def test_line():
     np_image = NPImage(100, 100, black)
     
     # init timer
-    number = 30000
-    t = timeit.Timer(lambda: line(13, 20, 80, 40, np_image, white), 'gc.enable()')
-    timing = t.timeit(number=number)
-    print(f"{number} loops, total: {timing:.5f} sec, avg: {timing / number:.3g} sec")
+    with cProfile.Profile() as pr:
+        for _ in range(30000):
+            line(13, 20, 80, 40, np_image, white)
+    pr.print_stats()
 
 if __name__ == "__main__":
     test_line()
