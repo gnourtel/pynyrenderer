@@ -12,7 +12,7 @@ def test_line():
     
     # init timer
     with cProfile.Profile() as pr:
-        for _ in range(30000):
+        for _ in range(30e3):
             line(13, 20, 80, 40, np_image, white)
     pr.print_stats()
 

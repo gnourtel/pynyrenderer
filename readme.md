@@ -2,7 +2,7 @@
 
 ## Chapter 1
 
-running the profiling, seeking any optimization applicable.
+running the profiling, seeking any optimization applicable, testing @30000 iter
 
 @ 3rd attempt:
 
@@ -21,6 +21,17 @@ running the profiling, seeking any optimization applicable.
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
   2040000    0.712    0.000    0.712    0.000 app.py:12(set_color)
     30000    0.432    0.000    1.148    0.000 app.py:16(line)
+        1    0.000    0.000    0.000    0.000 cProfile.py:117(__exit__)
+    90000    0.004    0.000    0.004    0.000 {built-in method builtins.abs}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+```
+
+@ 5th attempt, seems further optz ~10%:
+
+``` txt
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+  2040000    0.694    0.000    0.694    0.000 app.py:12(set_color)
+    30000    0.388    0.000    1.086    0.000 app.py:16(line)
         1    0.000    0.000    0.000    0.000 cProfile.py:117(__exit__)
     90000    0.004    0.000    0.004    0.000 {built-in method builtins.abs}
         1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}

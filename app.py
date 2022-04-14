@@ -23,8 +23,24 @@ def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
 
     dx = x1 - x0
     dy = y1 - y0
-    derror = abs(dy/dx)
-    error = 0.0
+
+    # 4th attemp
+    # derror = abs(dy/dx)
+    # error = 0.0
+    # y = y0
+    # for x in range(x0, x1 + 1):
+    #     if steep:
+    #         np_image.set_color(y, x, color)
+    #     else:
+    #         np_image.set_color(x, y, color)
+    #     error += derror
+    #     if error > 0.5:
+    #         y += 1 if y1 > y0 else -1
+    #         error -= 1
+
+    # 5th attempt
+    derror_new = abs(dy) * 2
+    error_new = 0 
     y = y0
     for x in range(x0, x1 + 1):
         if steep:
@@ -32,10 +48,10 @@ def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
         else:
             np_image.set_color(x, y, color)
 
-        error += derror
-        if error > 0.5:
+        error_new += derror_new
+        if error_new > dx:
             y += 1 if y1 > y0 else -1
-            error -= 1
+            error_new -= dx * 2
 
 def main():
     # declare color
