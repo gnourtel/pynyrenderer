@@ -1,5 +1,7 @@
 # Python Mimic TinyRenderer
 
+Inspire by <https://github.com/ssloy/tinyrenderer>
+
 ## Chapter 1
 
 running the profiling, seeking any optimization applicable, testing @30000 iter

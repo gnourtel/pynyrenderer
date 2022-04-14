@@ -12,6 +12,15 @@ class NPImage():
     def set_color(self, x, y, color):
         self.data[x, y] = color
 
+class Model():
+    def __init__(self, model: list[str]) -> None:
+        self.model = model
+    
+    def get_vertex(self):
+        for line in self.model:
+            if line[0] == "f":
+                vertices  = [vertex.split("/")[0] for vertex in line.strip()[2:].split(" ")]
+                yield [ self.model[int(v) - 1].strip()[2:].split(" ") for v in vertices ]
 
 def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
     steep = False
@@ -57,17 +66,28 @@ def main():
     # declare color
     white = np.asarray(getcolor('white', 'RGB'), dtype=np.uint8)
     black = np.asarray(getcolor('black', 'RGB'), dtype=np.uint8)
-    red   = np.asarray(getcolor('red', 'RGB'), dtype=np.uint8)
 
     # init np array image
-    np_image = NPImage(100, 100, black)
+    height = 800
+    width = 800
+    np_image = NPImage(height, width, black)
     
-    line(13, 20, 80, 40, np_image, white)
-    line(20, 13, 40, 80, np_image, red)
-    line(80, 40, 13, 20, np_image, red)
+    # read model
+    with open("object/head_wireframe.obj", "r") as rd:
+        model = Model(rd.readlines())
+
+    for v in model.get_vertex():
+        for e in range(3):
+            v0 = v[e]
+            v1 = v[(e + 1) % 3]
+            x0 = int((float(v0[0]) + 1.) * width / 2.) - 1
+            y0 = int((float(v0[1]) + 1.) * height / 2.) - 1
+            x1 = int((float(v1[0]) + 1.) * width / 2.) - 1
+            y1 = int((float(v1[1]) + 1.) * height / 2.) - 1
+            line(x0, y0, x1, y1, np_image, white)
 
     image = Image.fromarray(np_image.data, 'RGB')
-    image = image.transpose(1) # Flip vertical
+    image = image.transpose(2) # Flip vertical
     image.show()
 
 if __name__ == "__main__":
