@@ -1,26 +1,6 @@
-import numpy as np
 from PIL import Image
-from PIL.ImageColor import getcolor
-
-class NPImage():
-    def __init__(self, h, w, bg = None) -> None:
-        if bg is None:
-            self.data = np.full((h, w, 3), dtype=np.uint8, fill_value=bg)
-        else:
-            self.data = np.zeros((h, w, 3), dtype=np.uint8)
-
-    def set_color(self, x, y, color):
-        self.data[x, y] = color
-
-class Model():
-    def __init__(self, model: list[str]) -> None:
-        self.model = model
-    
-    def get_vertex(self):
-        for line in self.model:
-            if line[0] == "f":
-                vertices  = [vertex.split("/")[0] for vertex in line.strip()[2:].split(" ")]
-                yield [ self.model[int(v) - 1].strip()[2:].split(" ") for v in vertices ]
+from np_image import NPImage, RGBColor
+from model import Model
 
 def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
     steep = False
@@ -64,8 +44,8 @@ def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
 
 def main():
     # declare color
-    white = np.asarray(getcolor('white', 'RGB'), dtype=np.uint8)
-    black = np.asarray(getcolor('black', 'RGB'), dtype=np.uint8)
+    white = RGBColor("white")
+    black = RGBColor("black")
 
     # init np array image
     height = 800
@@ -73,9 +53,9 @@ def main():
     np_image = NPImage(height, width, black)
     
     # read model
-    with open("object/head_wireframe.obj", "r") as rd:
-        model = Model(rd.readlines())
+    model = Model("object/head_wireframe.obj")
 
+    # Chapter 1
     for v in model.get_vertex():
         for e in range(3):
             v0 = v[e]
