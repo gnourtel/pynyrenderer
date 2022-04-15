@@ -1,6 +1,6 @@
 from PIL import Image
 from np_image import NPImage, RGBColor
-from model import Model
+from model import Model, Vertex
 
 def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
     steep = False
@@ -42,29 +42,51 @@ def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
             y += 1 if y1 > y0 else -1
             error_new -= dx * 2
 
+def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, colors) -> None:
+    red, green = colors
+    if v0.y > v1.y: v0, v1 = v1, v0
+    if v0.y > v2.y: v0, v2 = v2, v0
+    if v1.y > v2.y: v1, v2 = v2, v1
+
+    total_length = v2.y - v0.y
+    segment_length_1 = v1.y - v0.y
+    for y in range(v0.y, v1.y + 1):
+        pass
+
 def main():
     # declare color
     white = RGBColor("white")
     black = RGBColor("black")
+    red   = RGBColor("red")
+    green = RGBColor("green")
 
     # init np array image
     height = 800
     width = 800
     np_image = NPImage(height, width, black)
     
-    # read model
-    model = Model("object/head_wireframe.obj")
 
-    # Chapter 1
-    for vertices in model.get_vertex():
-        for i in range(len(vertices)):
-            v0 = vertices[i]
-            v1 = vertices[(i + 1) % 3]
-            x0 = int((v0.x + 1.) * width / 2.)
-            y0 = int((v0.y + 1.) * height / 2.)
-            x1 = int((v1.x + 1.) * width / 2.)
-            y1 = int((v1.y + 1.) * height / 2.)
-            line(x0, y0, x1, y1, np_image, white)
+    # # Chapter 1
+    # # read model
+    # model = Model("object/head_wireframe.obj")
+    #
+    # for vertices in model.get_vertex():
+    #     for i in range(len(vertices)):
+    #         v0 = vertices[i]
+    #         v1 = vertices[(i + 1) % 3]
+    #         x0 = int((v0.x + 1.) * width / 2.)
+    #         y0 = int((v0.y + 1.) * height / 2.)
+    #         x1 = int((v1.x + 1.) * width / 2.)
+    #         y1 = int((v1.y + 1.) * height / 2.)
+    #         line(x0, y0, x1, y1, np_image, white)
+
+    # Chapter 2
+    t0 = [ Vertex([10, 70, 0]), Vertex([50, 160, 0]), Vertex([70, 80, 0]) ]
+    t1 = [ Vertex([180, 50, 0]), Vertex([150, 1, 0]), Vertex([70, 180, 0]) ]
+    t2 = [ Vertex([180, 150, 0]), Vertex([120, 160, 0]), Vertex([130, 180, 0]) ]
+    triangle(t0[0], t0[1], t0[2], np_image, [red, green])
+    triangle(t1[0], t1[1], t1[2], np_image, [red, green])
+    triangle(t2[0], t2[1], t2[2], np_image, [red, green])
 
     image = Image.fromarray(np_image.data, 'RGB')
     image = image.transpose(2) # Flip vertical
