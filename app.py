@@ -33,9 +33,9 @@ def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
     y = y0
     for x in range(x0, x1 + 1):
         if steep:
-            np_image.set_color(y, x, color)
+            np_image.set_color(y - 1, x - 1, color)
         else:
-            np_image.set_color(x, y, color)
+            np_image.set_color(x - 1, y - 1, color)
 
         error_new += derror_new
         if error_new > dx:
@@ -56,14 +56,14 @@ def main():
     model = Model("object/head_wireframe.obj")
 
     # Chapter 1
-    for v in model.get_vertex():
-        for e in range(3):
-            v0 = v[e]
-            v1 = v[(e + 1) % 3]
-            x0 = int((float(v0[0]) + 1.) * width / 2.) - 1
-            y0 = int((float(v0[1]) + 1.) * height / 2.) - 1
-            x1 = int((float(v1[0]) + 1.) * width / 2.) - 1
-            y1 = int((float(v1[1]) + 1.) * height / 2.) - 1
+    for vertices in model.get_vertex():
+        for i in range(len(vertices)):
+            v0 = vertices[i]
+            v1 = vertices[(i + 1) % 3]
+            x0 = int((v0.x + 1.) * width / 2.)
+            y0 = int((v0.y + 1.) * height / 2.)
+            x1 = int((v1.x + 1.) * width / 2.)
+            y1 = int((v1.y + 1.) * height / 2.)
             line(x0, y0, x1, y1, np_image, white)
 
     image = Image.fromarray(np_image.data, 'RGB')
