@@ -42,16 +42,25 @@ def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
             y += 1 if y1 > y0 else -1
             error_new -= dx * 2
 
-def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, colors) -> None:
-    red, green = colors
+def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, color) -> None:
+    # Line sweeping way
     if v0.y > v1.y: v0, v1 = v1, v0
     if v0.y > v2.y: v0, v2 = v2, v0
     if v1.y > v2.y: v1, v2 = v2, v1
 
     total_length = v2.y - v0.y
     segment_length_1 = v1.y - v0.y
-    for y in range(v0.y, v1.y + 1):
-        pass
+    segment_length_2 = v2.y - v1.y
+    for y in range(v0.y, v2.y + 1):
+        x_alpha = v0.x + int((v2.x - v0.x) * (y - v0.y) / total_length)
+        if y <= v1.y:
+            x_beta  = v0.x + int((v1.x - v0.x) * (y - v0.y) / segment_length_1)
+        else:
+            x_beta  = v1.x + int((v2.x - v1.x) * (y - v1.y) / segment_length_2)
+        if x_alpha > x_beta: x_alpha, x_beta = x_beta, x_alpha
+        for moving_x in range(x_alpha, x_beta + 1):
+            np_image.set_color(moving_x - 1, y - 1, color)
+
 
 def main():
     # declare color
@@ -61,8 +70,8 @@ def main():
     green = RGBColor("green")
 
     # init np array image
-    height = 800
-    width = 800
+    height = 200
+    width = 200
     np_image = NPImage(height, width, black)
     
 
@@ -84,9 +93,9 @@ def main():
     t0 = [ Vertex([10, 70, 0]), Vertex([50, 160, 0]), Vertex([70, 80, 0]) ]
     t1 = [ Vertex([180, 50, 0]), Vertex([150, 1, 0]), Vertex([70, 180, 0]) ]
     t2 = [ Vertex([180, 150, 0]), Vertex([120, 160, 0]), Vertex([130, 180, 0]) ]
-    triangle(t0[0], t0[1], t0[2], np_image, [red, green])
-    triangle(t1[0], t1[1], t1[2], np_image, [red, green])
-    triangle(t2[0], t2[1], t2[2], np_image, [red, green])
+    triangle(t0[0], t0[1], t0[2], np_image, red)
+    triangle(t1[0], t1[1], t1[2], np_image, white)
+    triangle(t2[0], t2[1], t2[2], np_image, green)
 
     image = Image.fromarray(np_image.data, 'RGB')
     image = image.transpose(2) # Flip vertical
