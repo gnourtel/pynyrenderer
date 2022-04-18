@@ -1,5 +1,5 @@
 from PIL import Image
-from np_image import NPImage, RGBColor
+from np_image import NPImage, RGBColor, np
 from model import Model, Vertex
 
 def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
@@ -42,24 +42,49 @@ def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
             y += 1 if y1 > y0 else -1
             error_new -= dx * 2
 
+
+def barycentric(point_x: int, point_y: int, *vertices: Vertex):
+    """
+    https://en.wikipedia.org/wiki/Barycentric_coordinate_system#Conversion_between_barycentric_and_Cartesian_coordinates
+    """
+    v1, v2, v3 = vertices
+    det_T = (v2.y - v3.y) * (v1.x - v3.x) + (v3.x - v2.x) * (v1.y - v3.y)
+    lambda_1 = ((v2.y - v3.y) * (point_x - v3.x) + (v3.x - v2.x) * (point_y - v3.y)) / det_T
+    lambda_2 = ((v3.y - v1.y) * (point_x - v3.x) + (v1.x - v3.x) * (point_y - v3.y)) / det_T        
+    return lambda_1 * lambda_2 * (1 - lambda_1 - lambda_2)
+
+
 def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, color) -> None:
     # Line sweeping way
-    if v0.y > v1.y: v0, v1 = v1, v0
-    if v0.y > v2.y: v0, v2 = v2, v0
-    if v1.y > v2.y: v1, v2 = v2, v1
+    # if v0.y > v1.y: v0, v1 = v1, v0
+    # if v0.y > v2.y: v0, v2 = v2, v0
+    # if v1.y > v2.y: v1, v2 = v2, v1
 
-    total_length = v2.y - v0.y
-    segment_length_1 = v1.y - v0.y
-    segment_length_2 = v2.y - v1.y
-    for y in range(v0.y, v2.y + 1):
-        x_alpha = v0.x + int((v2.x - v0.x) * (y - v0.y) / total_length)
-        if y <= v1.y:
-            x_beta  = v0.x + int((v1.x - v0.x) * (y - v0.y) / segment_length_1)
-        else:
-            x_beta  = v1.x + int((v2.x - v1.x) * (y - v1.y) / segment_length_2)
-        if x_alpha > x_beta: x_alpha, x_beta = x_beta, x_alpha
-        for moving_x in range(x_alpha, x_beta + 1):
-            np_image.set_color(moving_x - 1, y - 1, color)
+    # total_length = v2.y - v0.y
+    # segment_length_1 = v1.y - v0.y
+    # segment_length_2 = v2.y - v1.y
+    # for y in range(v0.y, v2.y + 1):
+    #     x_alpha = v0.x + int((v2.x - v0.x) * (y - v0.y) / total_length)
+    #     if y <= v1.y:
+    #         x_beta  = v0.x + int((v1.x - v0.x) * (y - v0.y) / segment_length_1)
+    #     else:
+    #         x_beta  = v1.x + int((v2.x - v1.x) * (y - v1.y) / segment_length_2)
+    #     if x_alpha > x_beta: x_alpha, x_beta = x_beta, x_alpha
+    #     for moving_x in range(x_alpha, x_beta + 1):
+    #         np_image.set_color(moving_x - 1, y - 1, color)
+
+
+    # Boundingbox pixcel check
+    v_array = [v0, v1, v2]
+    bbox_x_min = min([v.x for v in v_array])
+    bbox_x_max = max([v.x for v in v_array])
+    bbox_y_min = min([v.y for v in v_array])
+    bbox_y_max = max([v.y for v in v_array])
+
+    for x in range(bbox_x_min, bbox_x_max + 1):
+        for y in range(bbox_y_min, bbox_y_max + 1):
+            if barycentric(x, y, v0, v1, v2) < 0: continue
+            np_image.set_color(x - 1, y - 1, color)
 
 
 def main():
@@ -70,8 +95,8 @@ def main():
     green = RGBColor("green")
 
     # init np array image
-    height = 200
-    width = 200
+    height = 800
+    width = 800
     np_image = NPImage(height, width, black)
     
 
@@ -90,12 +115,9 @@ def main():
     #         line(x0, y0, x1, y1, np_image, white)
 
     # Chapter 2
-    t0 = [ Vertex([10, 70, 0]), Vertex([50, 160, 0]), Vertex([70, 80, 0]) ]
-    t1 = [ Vertex([180, 50, 0]), Vertex([150, 1, 0]), Vertex([70, 180, 0]) ]
-    t2 = [ Vertex([180, 150, 0]), Vertex([120, 160, 0]), Vertex([130, 180, 0]) ]
-    triangle(t0[0], t0[1], t0[2], np_image, red)
-    triangle(t1[0], t1[1], t1[2], np_image, white)
-    triangle(t2[0], t2[1], t2[2], np_image, green)
+    model = Model("object/head_wireframe.obj")
+    for vertices in model.get_vertex():
+        triangle(vertices[0], vertices[1], vertices[2], np_image, RGBColor.random_color())
 
     image = Image.fromarray(np_image.data, 'RGB')
     image = image.transpose(2) # Flip vertical

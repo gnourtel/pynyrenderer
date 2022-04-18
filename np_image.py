@@ -1,5 +1,4 @@
 import numpy as np
-from dataclasses import dataclass
 
 
 class RGBColor():
@@ -10,10 +9,17 @@ class RGBColor():
         "black": np.array([0, 0, 0], dtype=np.uint8),
         "white": np.array([255, 255, 255], dtype=np.uint8),
     }
-    def __init__(self, color_str: str) -> None:
-        self.value = self.color_palette.get(color_str)
-        if self.value is None:
-            raise UserWarning(f"Unsupport color value: {color_str}")
+
+    def __init__(self, color_str: str = None) -> None:
+        if color_str:
+            self.value = self.color_palette.get(color_str)
+        else:
+            self.value = np.random.randint(255, size=3)
+
+    @classmethod
+    def random_color(cls):
+        return cls()
+
 
 class NPImage():
     def __init__(self, h, w, bg = None) -> None:
