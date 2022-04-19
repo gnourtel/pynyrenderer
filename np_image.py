@@ -23,6 +23,8 @@ class RGBColor():
 
 class NPImage():
     def __init__(self, h, w, bg = None) -> None:
+        self.h = h
+        self.w = w
         if bg is None:
             self.data = np.full((h, w, 3), dtype=np.uint8, fill_value=bg)
         else:

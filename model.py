@@ -1,18 +1,21 @@
+from __future__ import annotations
 from typing import Union, Generator
 
 class Vertex():
-    _x: float
-    _y: float
-    _z: float
-    width: int
-    height: int
+    x: float
+    y: float
+    z: float
+
     def __init__(self, vertex: Union[list[float], str] = None) -> None:
         if type(vertex) == list:
-            self._x, self._y, self._z = vertex
+            self.x, self.y, self.z = vertex
         elif type(vertex) == str:
-            self._x, self._y, self._z = map(lambda x: float(x), vertex.strip()[2:].split())
+            self.x, self.y, self.z = map(lambda x: float(x), vertex.strip()[2:].split())
         else:
             raise UserWarning(f"unsupport vertex input type {type(vertex)}")
+
+    def __eq__(self, vertex: Vertex) -> bool:
+        return self.x == vertex.x and self.y == vertex.y
 
 
 class Model():

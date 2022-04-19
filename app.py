@@ -48,21 +48,25 @@ def barycentric(point_x: int, point_y: int, *vertices: Vertex):
     https://en.wikipedia.org/wiki/Barycentric_coordinate_system#Conversion_between_barycentric_and_Cartesian_coordinates
     """
     v1, v2, v3 = vertices
-    det_T = (v2.y - v3.y) * (v1.x - v3.x) + (v3.x - v2.x) * (v1.y - v3.y)
-    lambda_1 = ((v2.y - v3.y) * (point_x - v3.x) + (v3.x - v2.x) * (point_y - v3.y)) / det_T
-    lambda_2 = ((v3.y - v1.y) * (point_x - v3.x) + (v1.x - v3.x) * (point_y - v3.y)) / det_T        
-    return lambda_1 * lambda_2 * (1 - lambda_1 - lambda_2)
-
+    return 1 / (v1.x * (v2.y - v3.y) + v2.x * (v3.y - v1.y) + v3.x * (v1.y - v2.y)) * \
+        np.dot(
+            np.array([[v2.x * v3.y - v3.x * v2.y, v2.y - v3.y, v3.x - v2.x],
+                      [v3.x * v1.y - v1.x * v3.y, v3.y - v1.y, v1.x - v3.x],
+                      [v1.x * v2.y - v2.x * v1.y, v1.y - v2.y, v2.x - v1.x]],
+                      dtype=np.uint8),
+            np.array([1, point_x, point_y]).transpose()
+        )
 
 def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, color) -> None:
-    # Line sweeping way
+    # if v0.y == v1.y or v0.y == v2.y: return
+    # # Line sweeping way
     # if v0.y > v1.y: v0, v1 = v1, v0
     # if v0.y > v2.y: v0, v2 = v2, v0
     # if v1.y > v2.y: v1, v2 = v2, v1
 
     # total_length = v2.y - v0.y
     # segment_length_1 = v1.y - v0.y
-    # segment_length_2 = v2.y - v1.y
+    # segment_length_2 = total_length - segment_length_1
     # for y in range(v0.y, v2.y + 1):
     #     x_alpha = v0.x + int((v2.x - v0.x) * (y - v0.y) / total_length)
     #     if y <= v1.y:
@@ -74,18 +78,30 @@ def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, color) -> No
     #         np_image.set_color(moving_x - 1, y - 1, color)
 
 
+    # check if triangle is degenerate
+    if v0 == v1 or v1 == v2 or v0 == v2: return
     # Boundingbox pixcel check
-    v_array = [v0, v1, v2]
-    bbox_x_min = min([v.x for v in v_array])
-    bbox_x_max = max([v.x for v in v_array])
-    bbox_y_min = min([v.y for v in v_array])
-    bbox_y_max = max([v.y for v in v_array])
+    bbox_x_min, bbox_y_min = np_image.w - 1, np_image.h - 1
+    bbox_x_max, bbox_y_max = 0, 0
+    for v in [v0, v1, v2]:
+        bbox_x_min = max(0, min(bbox_x_min, v.x))
+        bbox_y_min = max(0, min(bbox_y_min, v.y))
+
+        bbox_x_max = min(np_image.w - 1, max(bbox_x_max, v.x))
+        bbox_y_max = min(np_image.h - 1, max(bbox_y_max, v.y))
 
     for x in range(bbox_x_min, bbox_x_max + 1):
         for y in range(bbox_y_min, bbox_y_max + 1):
-            if barycentric(x, y, v0, v1, v2) < 0: continue
-            np_image.set_color(x - 1, y - 1, color)
-
+            try:
+                bc_screen = barycentric(x, y, v0, v1, v2)
+                if bc_screen[0] < 0 or bc_screen[1] < 0 or bc_screen[2] < 0: continue
+                np_image.set_color(x - 1, y - 1, color)
+            except Exception:
+                print(x, y)
+                print(v0.x, v0.y)
+                print(v1.x, v1.y)
+                print(v2.x, v2.y)
+                print("_________________")
 
 def main():
     # declare color
@@ -98,12 +114,11 @@ def main():
     height = 800
     width = 800
     np_image = NPImage(height, width, black)
-    
 
     # # Chapter 1
     # # read model
     # model = Model("object/head_wireframe.obj")
-    #
+    
     # for vertices in model.get_vertex():
     #     for i in range(len(vertices)):
     #         v0 = vertices[i]
@@ -116,8 +131,13 @@ def main():
 
     # Chapter 2
     model = Model("object/head_wireframe.obj")
+
     for vertices in model.get_vertex():
-        triangle(vertices[0], vertices[1], vertices[2], np_image, RGBColor.random_color())
+        triangle(
+            Vertex([int((vertices[0].x + 1.) * width / 2.), int((vertices[0].y + 1.) * height / 2.), 0.]),
+            Vertex([int((vertices[1].x + 1.) * width / 2.), int((vertices[1].y + 1.) * height / 2.), 0.]),
+            Vertex([int((vertices[2].x + 1.) * width / 2.), int((vertices[2].y + 1.) * height / 2.), 0.]),
+            np_image, RGBColor.random_color())
 
     image = Image.fromarray(np_image.data, 'RGB')
     image = image.transpose(2) # Flip vertical
