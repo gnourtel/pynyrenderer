@@ -1,22 +1,5 @@
-from __future__ import annotations
-from typing import Union, Generator
-
-class Vertex():
-    x: float
-    y: float
-    z: float
-
-    def __init__(self, vertex: Union[list[float], str] = None) -> None:
-        if type(vertex) == list:
-            self.x, self.y, self.z = vertex
-        elif type(vertex) == str:
-            self.x, self.y, self.z = map(lambda x: float(x), vertex.strip()[2:].split())
-        else:
-            raise UserWarning(f"unsupport vertex input type {type(vertex)}")
-
-    def __eq__(self, vertex: Vertex) -> bool:
-        return self.x == vertex.x and self.y == vertex.y
-
+from typing import Generator
+from geo import Vertex
 
 class Model():
     def __init__(self, model_url: str) -> None:

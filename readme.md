@@ -57,15 +57,15 @@ barycentric method, this may scan unneccessary pixel?
 
 ``` txt
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-  5551000    3.630    0.000    3.630    0.000 app.py:46(barycentric)
-     1000    1.389    0.001    5.985    0.006 app.py:57(triangle)
-     1000    0.000    0.000    0.000    0.000 app.py:79(<listcomp>)
-     1000    0.000    0.000    0.000    0.000 app.py:80(<listcomp>)
-     1000    0.000    0.000    0.000    0.000 app.py:81(<listcomp>)
-     1000    0.000    0.000    0.000    0.000 app.py:82(<listcomp>)
+  5551000    8.326    0.000   16.054    0.000 app.py:46(is_barycentric)
+     1000    1.933    0.002   19.104    0.019 app.py:57(triangle)
         1    0.000    0.000    0.000    0.000 cProfile.py:117(__exit__)
-  2519000    0.963    0.000    0.963    0.000 np_image.py:25(set_color)
-     2000    0.000    0.000    0.000    0.000 {built-in method builtins.max}
-     2000    0.001    0.000    0.001    0.000 {built-in method builtins.min}
+     3000    0.000    0.000    0.000    0.000 model.py:17(__eq__)
+  5551000    3.042    0.000    4.111    0.000 model.py:20(__xor__)
+ 22204000    4.380    0.000    4.380    0.000 model.py:9(__init__)
+  2521000    1.113    0.000    1.113    0.000 np_image.py:33(set_color)
+  5551000    0.305    0.000    0.305    0.000 {built-in method builtins.abs}
+    12000    0.002    0.000    0.002    0.000 {built-in method builtins.max}
+    12000    0.002    0.000    0.002    0.000 {built-in method builtins.min}
         1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
 ```

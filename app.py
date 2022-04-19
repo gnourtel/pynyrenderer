@@ -43,19 +43,16 @@ def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
             error_new -= dx * 2
 
 
-def barycentric(point_x: int, point_y: int, *vertices: Vertex):
+def is_barycentric(point_x: int, point_y: int, *vertices: Vertex) -> bool:
     """
     https://en.wikipedia.org/wiki/Barycentric_coordinate_system#Conversion_between_barycentric_and_Cartesian_coordinates
     """
     v1, v2, v3 = vertices
-    return 1 / (v1.x * (v2.y - v3.y) + v2.x * (v3.y - v1.y) + v3.x * (v1.y - v2.y)) * \
-        np.dot(
-            np.array([[v2.x * v3.y - v3.x * v2.y, v2.y - v3.y, v3.x - v2.x],
-                      [v3.x * v1.y - v1.x * v3.y, v3.y - v1.y, v1.x - v3.x],
-                      [v1.x * v2.y - v2.x * v1.y, v1.y - v2.y, v2.x - v1.x]],
-                      dtype=np.uint8),
-            np.array([1, point_x, point_y]).transpose()
-        )
+    u = Vertex([v3.x - v1.x, v2.x - v1.x, v1.x - point_x]) ^ Vertex([v3.y - v1.y, v2.y - v1.y, v1.y - point_y])
+    # sinze point and vertex is int, abs(u.z) < 1 means u.z = 0, hence triangle is degenerate
+    if abs(u.z) < 1: return False
+    bary_vector = Vertex([1.0 - (u.y + u.x) / u.z, u.y / u.z, u.x / u.z])
+    return False if bary_vector.x < 0 or bary_vector.y < 0 or bary_vector.z < 0 else True
 
 def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, color) -> None:
     # if v0.y == v1.y or v0.y == v2.y: return
@@ -77,9 +74,6 @@ def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, color) -> No
     #     for moving_x in range(x_alpha, x_beta + 1):
     #         np_image.set_color(moving_x - 1, y - 1, color)
 
-
-    # check if triangle is degenerate
-    if v0 == v1 or v1 == v2 or v0 == v2: return
     # Boundingbox pixcel check
     bbox_x_min, bbox_y_min = np_image.w - 1, np_image.h - 1
     bbox_x_max, bbox_y_max = 0, 0
@@ -92,16 +86,8 @@ def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, color) -> No
 
     for x in range(bbox_x_min, bbox_x_max + 1):
         for y in range(bbox_y_min, bbox_y_max + 1):
-            try:
-                bc_screen = barycentric(x, y, v0, v1, v2)
-                if bc_screen[0] < 0 or bc_screen[1] < 0 or bc_screen[2] < 0: continue
-                np_image.set_color(x - 1, y - 1, color)
-            except Exception:
-                print(x, y)
-                print(v0.x, v0.y)
-                print(v1.x, v1.y)
-                print(v2.x, v2.y)
-                print("_________________")
+            if not is_barycentric(x, y, v0, v1, v2): continue
+            np_image.set_color(x - 1, y - 1, color)
 
 def main():
     # declare color
