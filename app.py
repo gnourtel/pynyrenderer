@@ -1,6 +1,7 @@
 from PIL import Image
 from np_image import NPImage, RGBColor, np
-from model import Model, Vertex
+from model import Model
+from geo import Vector
 
 def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
     steep = False
@@ -43,18 +44,18 @@ def line(x0: int, y0: int, x1: int, y1: int, np_image: NPImage, color) -> None:
             error_new -= dx * 2
 
 
-def is_barycentric(point_x: int, point_y: int, *vertices: Vertex) -> bool:
+def is_barycentric(point_x: int, point_y: int, *vertices: Vector) -> bool:
     """
     https://en.wikipedia.org/wiki/Barycentric_coordinate_system#Conversion_between_barycentric_and_Cartesian_coordinates
     """
     v1, v2, v3 = vertices
-    u = Vertex([v3.x - v1.x, v2.x - v1.x, v1.x - point_x]) ^ Vertex([v3.y - v1.y, v2.y - v1.y, v1.y - point_y])
+    u = Vector([v3.x - v1.x, v2.x - v1.x, v1.x - point_x]) ^ Vector([v3.y - v1.y, v2.y - v1.y, v1.y - point_y])
     # sinze point and vertex is int, abs(u.z) < 1 means u.z = 0, hence triangle is degenerate
     if abs(u.z) < 1: return False
-    bary_vector = Vertex([1.0 - (u.y + u.x) / u.z, u.y / u.z, u.x / u.z])
+    bary_vector = Vector([1.0 - (u.y + u.x) / u.z, u.y / u.z, u.x / u.z])
     return False if bary_vector.x < 0 or bary_vector.y < 0 or bary_vector.z < 0 else True
 
-def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, color) -> None:
+def triangle(v0: Vector, v1: Vector, v2: Vector, np_image: NPImage, color) -> None:
     # if v0.y == v1.y or v0.y == v2.y: return
     # # Line sweeping way
     # if v0.y > v1.y: v0, v1 = v1, v0
@@ -78,11 +79,11 @@ def triangle(v0: Vertex, v1: Vertex, v2: Vertex, np_image: NPImage, color) -> No
     bbox_x_min, bbox_y_min = np_image.w - 1, np_image.h - 1
     bbox_x_max, bbox_y_max = 0, 0
     for v in [v0, v1, v2]:
-        bbox_x_min = max(0, min(bbox_x_min, v.x))
-        bbox_y_min = max(0, min(bbox_y_min, v.y))
+        bbox_x_min = max(0, min(bbox_x_min, int(v.x)))
+        bbox_y_min = max(0, min(bbox_y_min, int(v.y)))
 
-        bbox_x_max = min(np_image.w - 1, max(bbox_x_max, v.x))
-        bbox_y_max = min(np_image.h - 1, max(bbox_y_max, v.y))
+        bbox_x_max = min(np_image.w - 1, max(bbox_x_max, int(v.x)))
+        bbox_y_max = min(np_image.h - 1, max(bbox_y_max, int(v.y)))
 
     for x in range(bbox_x_min, bbox_x_max + 1):
         for y in range(bbox_y_min, bbox_y_max + 1):
@@ -118,12 +119,18 @@ def main():
     # Chapter 2
     model = Model("object/head_wireframe.obj")
 
+    light_dir = Vector([0, 0, -1])
     for vertices in model.get_vertex():
-        triangle(
-            Vertex([int((vertices[0].x + 1.) * width / 2.), int((vertices[0].y + 1.) * height / 2.), 0.]),
-            Vertex([int((vertices[1].x + 1.) * width / 2.), int((vertices[1].y + 1.) * height / 2.), 0.]),
-            Vertex([int((vertices[2].x + 1.) * width / 2.), int((vertices[2].y + 1.) * height / 2.), 0.]),
-            np_image, RGBColor.random_color())
+        vector_n = (vertices[2] - vertices[0]) ^ (vertices[1] - vertices[0])
+
+        if (intensity:= vector_n.nomalize() * light_dir) > 0:
+            triangle(
+                Vector([int((vertices[0].x + 1.) * width / 2.), int((vertices[0].y + 1.) * height / 2.), 0.]),
+                Vector([int((vertices[1].x + 1.) * width / 2.), int((vertices[1].y + 1.) * height / 2.), 0.]),
+                Vector([int((vertices[2].x + 1.) * width / 2.), int((vertices[2].y + 1.) * height / 2.), 0.]),
+                np_image,
+                RGBColor(np.array([255, 255, 255]) * intensity)
+            )
 
     image = Image.fromarray(np_image.data, 'RGB')
     image = image.transpose(2) # Flip vertical

@@ -1,5 +1,5 @@
+from typing import Union
 import numpy as np
-
 
 class RGBColor():
     color_palette = {
@@ -10,9 +10,11 @@ class RGBColor():
         "white": np.array([255, 255, 255], dtype=np.uint8),
     }
 
-    def __init__(self, color_str: str = None) -> None:
-        if color_str:
+    def __init__(self, color_str: Union[str, np.ndarray] = None) -> None:
+        if type(color_str) == str:
             self.value = self.color_palette.get(color_str)
+        elif type(color_str) == np.ndarray:
+            self.value = color_str
         else:
             self.value = np.random.randint(255, size=3)
 
